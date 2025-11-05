@@ -6,13 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Budget\StoreIncomeCategoryRequest;
 use App\Http\Requests\Budget\UpdateIncomeCategoryRequest;
 use App\Repositories\Budget\IncomeCategoryRepository;
+use App\Repositories\User\UserSettingRepository;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class IncomeCategoryController extends Controller
 {
     public function __construct(
-        protected IncomeCategoryRepository $incomeCategoryRepo
+        protected IncomeCategoryRepository $incomeCategoryRepo,
+        protected UserSettingRepository $settingRepo
     ) {}
 
     /**
@@ -22,17 +24,27 @@ class IncomeCategoryController extends Controller
     {
         $userId = auth()->id();
         $categories = $this->incomeCategoryRepo->getAllForUser($userId);
+        $settings = $this->settingRepo->getOrCreateForUser($userId);
+
+        // Calculate total income from categories
+        $totalIncome = $categories->where('is_active', true)
+            ->sum('amount');
 
         if ($request->wantsJson()) {
             return response()->json([
                 'message' => 'Categories found',
-                'data' => ['categories' => $categories],
+                'data' => [
+                    'categories' => $categories,
+                    'totalIncome' => $totalIncome,
+                ],
                 'status' => 200,
             ]);
         }
 
         return Inertia::render('budget/income-categories/index', [
             'categories' => $categories,
+            'settings' => $settings,
+            'totalIncome' => $totalIncome,
         ]);
     }
 

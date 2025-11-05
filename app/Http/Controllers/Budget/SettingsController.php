@@ -30,6 +30,9 @@ class SettingsController extends Controller
         $validated = $request->validate([
             'currency' => ['required', 'string', 'max:10'],
             'currency_symbol' => ['required', 'string', 'max:10'],
+            'thousand_separator' => ['required', 'string', 'max:5'],
+            'decimal_separator' => ['required', 'string', 'max:5'],
+            'decimal_places' => ['required', 'integer', 'min:0', 'max:4'],
         ]);
 
         $userId = auth()->id();

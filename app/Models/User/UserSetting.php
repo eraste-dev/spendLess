@@ -14,6 +14,9 @@ class UserSetting extends Model
         'user_id',
         'currency',
         'currency_symbol',
+        'thousand_separator',
+        'decimal_separator',
+        'decimal_places',
         'date_format',
         'locale',
     ];

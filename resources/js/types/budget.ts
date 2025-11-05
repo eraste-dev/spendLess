@@ -62,6 +62,9 @@ export interface UserSettings {
     user_id: number;
     currency: string;
     currency_symbol: string;
+    thousand_separator: string;
+    decimal_separator: string;
+    decimal_places: number;
     date_format: string;
     locale: string;
 }

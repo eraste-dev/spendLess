@@ -3,16 +3,19 @@ import { IncomeCategoryListMobile } from '@/components/features/budget/income-ca
 import { ConfirmDialog } from '@/components/ui-element-custom/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import MobileHeaderLayout from '@/layouts/mobile-header-layout';
-import { IncomeCategory } from '@/types/budget';
+import { formatCurrency } from '@/lib/currency';
+import { IncomeCategory, UserSettings } from '@/types/budget';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
 interface Props {
     categories: IncomeCategory[];
+    settings: UserSettings;
+    totalIncome: number;
 }
 
-export default function Index({ categories }: Props) {
+export default function Index({ categories, settings, totalIncome }: Props) {
     const [editingCategory, setEditingCategory] =
         useState<IncomeCategory | null>(null);
     const [deletingCategory, setDeletingCategory] =
@@ -105,6 +108,27 @@ export default function Index({ categories }: Props) {
                     Gérez vos sources de revenus
                 </p>
             </div>
+
+            {/* Total Income Display */}
+            {categories.length > 0 && (
+                <div className="mb-6 rounded-xl border bg-gradient-to-br from-primary/5 to-primary/10 p-6">
+                    <div className="flex items-baseline justify-between gap-4">
+                        <div className="flex-1">
+                            <p className="mb-1 text-sm font-medium text-muted-foreground">
+                                Total des revenus actifs
+                            </p>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-3xl font-bold tracking-tight sm:text-4xl">
+                                    {formatCurrency(totalIncome, settings)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                        Somme des montants des catégories actives
+                    </p>
+                </div>
+            )}
 
             {/* Liste des catégories */}
             <IncomeCategoryListMobile
