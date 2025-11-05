@@ -1,12 +1,12 @@
+import { IncomeCategoryFormModalMobile } from '@/components/features/budget/income-category-form-modal-mobile';
+import { IncomeCategoryListMobile } from '@/components/features/budget/income-category-list-mobile';
 import { ConfirmDialog } from '@/components/ui-element-custom/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import MobileHeaderLayout from '@/layouts/mobile-header-layout';
+import { IncomeCategory } from '@/types/budget';
 import { Head, router, useForm } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
-import { IncomeCategory } from '@/types/budget';
-import { IncomeCategoryListMobile } from '@/components/features/budget/income-category-list-mobile';
-import { IncomeCategoryFormModalMobile } from '@/components/features/budget/income-category-form-modal-mobile';
 
 interface Props {
     categories: IncomeCategory[];
@@ -17,20 +17,23 @@ export default function Index({ categories }: Props) {
         useState<IncomeCategory | null>(null);
     const [deletingCategory, setDeletingCategory] =
         useState<IncomeCategory | null>(null);
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: '',
         description: '',
+        amount: '',
+        is_monthly: false,
+        income_date: '',
         color: '#3b82f6',
     });
 
     // Création
     const openCreateDialog = () => {
         reset();
-        setIsCreateDialogOpen(true);
+        setEditingCategory(null);
+        setIsFormDialogOpen(true);
     };
 
     const handleCreate: FormEventHandler = (e) => {
@@ -38,7 +41,7 @@ export default function Index({ categories }: Props) {
         post('/budget/income-categories', {
             preserveScroll: true,
             onSuccess: () => {
-                setIsCreateDialogOpen(false);
+                setIsFormDialogOpen(false);
                 reset();
             },
         });
@@ -50,9 +53,12 @@ export default function Index({ categories }: Props) {
         setData({
             name: category.name,
             description: category.description || '',
+            amount: category.amount?.toString() || '',
+            is_monthly: category.is_monthly,
+            income_date: category.income_date || '',
             color: category.color,
         });
-        setIsEditDialogOpen(true);
+        setIsFormDialogOpen(true);
     };
 
     const handleEdit: FormEventHandler = (e) => {
@@ -62,7 +68,7 @@ export default function Index({ categories }: Props) {
         put(`/budget/income-categories/${editingCategory.id}`, {
             preserveScroll: true,
             onSuccess: () => {
-                setIsEditDialogOpen(false);
+                setIsFormDialogOpen(false);
                 setEditingCategory(null);
                 reset();
             },
@@ -92,10 +98,10 @@ export default function Index({ categories }: Props) {
 
             {/* Page Header - Mobile optimized */}
             <div className="mb-6">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
+                <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">
                     Catégories de revenus
                 </h1>
-                <p className="text-sm sm:text-base text-muted-foreground">
+                <p className="text-sm text-muted-foreground sm:text-base">
                     Gérez vos sources de revenus
                 </p>
             </div>
@@ -113,34 +119,25 @@ export default function Index({ categories }: Props) {
                 <Button
                     onClick={openCreateDialog}
                     size="lg"
-                    className="fixed bottom-6 right-6 size-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-40"
+                    className="fixed right-6 bottom-6 z-40 size-14 rounded-full shadow-lg transition-shadow hover:shadow-xl"
                 >
                     <Plus className="size-6" />
                 </Button>
             )}
 
-            {/* Modal de création */}
+            {/* Modal unique de formulaire (création/édition) */}
             <IncomeCategoryFormModalMobile
-                isOpen={isCreateDialogOpen}
-                onClose={() => setIsCreateDialogOpen(false)}
-                onSubmit={handleCreate}
+                isOpen={isFormDialogOpen}
+                onClose={() => {
+                    setIsFormDialogOpen(false);
+                    setEditingCategory(null);
+                }}
+                onSubmit={editingCategory ? handleEdit : handleCreate}
                 data={data}
                 setData={setData}
                 errors={errors}
                 processing={processing}
-                mode="create"
-            />
-
-            {/* Modal d'édition */}
-            <IncomeCategoryFormModalMobile
-                isOpen={isEditDialogOpen}
-                onClose={() => setIsEditDialogOpen(false)}
-                onSubmit={handleEdit}
-                data={data}
-                setData={setData}
-                errors={errors}
-                processing={processing}
-                mode="edit"
+                mode={editingCategory ? 'edit' : 'create'}
             />
 
             {/* Dialog de confirmation de suppression */}

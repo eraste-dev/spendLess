@@ -4,6 +4,9 @@ export interface IncomeCategory {
     id: number;
     name: string;
     description: string | null;
+    amount: number | null;
+    is_monthly: boolean;
+    income_date: string | null;
     color: string;
     order: number;
     is_active: boolean;

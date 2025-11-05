@@ -35,11 +35,51 @@ class BudgetCategoriesSeeder extends Seeder
         $this->command->info('Création des catégories de revenus...');
 
         $incomeCategories = [
-            ['name' => 'Salaire', 'description' => 'Revenu mensuel fixe', 'color' => '#10b981', 'order' => 1],
-            ['name' => 'Freelance', 'description' => 'Revenus de projets freelance', 'color' => '#3b82f6', 'order' => 2],
-            ['name' => 'Investissements', 'description' => 'Dividendes et revenus d\'investissements', 'color' => '#8b5cf6', 'order' => 3],
-            ['name' => 'Projets', 'description' => 'Revenus de projets secondaires', 'color' => '#f59e0b', 'order' => 4],
-            ['name' => 'Autres revenus', 'description' => 'Autres sources de revenus', 'color' => '#6b7280', 'order' => 5],
+            [
+                'name' => 'Salaire',
+                'description' => 'Revenu mensuel fixe',
+                'amount' => 500000.00,
+                'is_monthly' => true,
+                'income_date' => null,
+                'color' => '#10b981',
+                'order' => 1,
+            ],
+            [
+                'name' => 'Freelance',
+                'description' => 'Revenus de projets freelance',
+                'amount' => 150000.00,
+                'is_monthly' => false,
+                'income_date' => now()->addDays(15)->format('Y-m-d'),
+                'color' => '#3b82f6',
+                'order' => 2,
+            ],
+            [
+                'name' => 'Investissements',
+                'description' => 'Dividendes et revenus d\'investissements',
+                'amount' => 50000.00,
+                'is_monthly' => true,
+                'income_date' => null,
+                'color' => '#8b5cf6',
+                'order' => 3,
+            ],
+            [
+                'name' => 'Projets',
+                'description' => 'Revenus de projets secondaires',
+                'amount' => 100000.00,
+                'is_monthly' => false,
+                'income_date' => now()->addDays(30)->format('Y-m-d'),
+                'color' => '#f59e0b',
+                'order' => 4,
+            ],
+            [
+                'name' => 'Autres revenus',
+                'description' => 'Autres sources de revenus',
+                'amount' => null,
+                'is_monthly' => false,
+                'income_date' => now()->format('Y-m-d'),
+                'color' => '#6b7280',
+                'order' => 5,
+            ],
         ];
 
         foreach ($incomeCategories as $category) {

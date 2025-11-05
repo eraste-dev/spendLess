@@ -16,6 +16,9 @@ class IncomeCategory extends Model
         'user_id',
         'name',
         'description',
+        'amount',
+        'is_monthly',
+        'income_date',
         'color',
         'order',
         'is_active',
@@ -23,7 +26,10 @@ class IncomeCategory extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_monthly' => 'boolean',
         'order' => 'integer',
+        'amount' => 'decimal:2',
+        'income_date' => 'date',
     ];
 
     /**

@@ -1,0 +1,11 @@
+# Cursor Rules - Budget App
+
+## Philosophie Mobile-First
+
+### Approche de design
+- **TOUJOURS** concevoir pour mobile en priorité, puis adapter pour desktop
+- Utiliser des breakpoints Tailwind: `sm:`, `md:`, `lg:`, `xl:`
+- Privilégier les interactions tactiles (boutons plus grands, espacements généreux)
+- Utiliser des composants de navigation adaptés: Header mobile + Sheet/Drawer
+
+... (content truncated for brevity in this example) ...

@@ -1,13 +1,21 @@
 import { Badge } from '@/components/ui/badge';
-import { IncomeCategory } from '@/types/budget';
-import { Edit, Eye, EyeOff, Trash2, MoreVertical } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { IncomeCategory } from '@/types/budget';
+import {
+    Calendar,
+    Edit,
+    Eye,
+    EyeOff,
+    MoreVertical,
+    Repeat,
+    Trash2,
+} from 'lucide-react';
 
 interface IncomeCategoryCardMobileProps {
     category: IncomeCategory;
@@ -15,47 +23,100 @@ interface IncomeCategoryCardMobileProps {
     onDelete: (category: IncomeCategory) => void;
 }
 
+const formatAmount = (amount: number | null) => {
+    if (!amount) return null;
+    return new Intl.NumberFormat('fr-FR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(amount);
+};
+
+const formatDate = (date: string | null) => {
+    if (!date) return null;
+    return new Date(date).toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    });
+};
+
 export function IncomeCategoryCardMobile({
     category,
     onEdit,
     onDelete,
 }: IncomeCategoryCardMobileProps) {
     return (
-        <div className="flex items-center gap-3 rounded-xl border bg-card p-4 active:bg-muted/50 transition-colors">
-            {/* Color Indicator */}
+        <div className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors active:bg-muted/50">
+            {/* Clickable area for editing */}
             <div
-                className="size-12 shrink-0 rounded-lg border-2"
-                style={{
-                    backgroundColor: category.color,
-                }}
-            />
+                className="flex min-w-0 flex-1 cursor-pointer items-center gap-3"
+                onClick={() => onEdit(category)}
+            >
+                {/* Color Indicator */}
+                <div
+                    className="size-12 shrink-0 rounded-lg border-2"
+                    style={{
+                        backgroundColor: category.color,
+                    }}
+                />
 
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-base truncate">
-                        {category.name}
-                    </h3>
-                    {category.is_active ? (
-                        <Badge
-                            variant="default"
-                            className="shrink-0 bg-green-500 hover:bg-green-600 text-xs"
-                        >
-                            <Eye className="mr-1 size-3" />
-                            Actif
-                        </Badge>
-                    ) : (
-                        <Badge variant="secondary" className="shrink-0 text-xs">
-                            <EyeOff className="mr-1 size-3" />
-                            Inactif
-                        </Badge>
+                {/* Content */}
+                <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                        <h3 className="truncate text-base font-semibold">
+                            {category.name}
+                        </h3>
+                        {category.is_active ? (
+                            <Badge
+                                variant="default"
+                                className="shrink-0 bg-green-500 text-xs hover:bg-green-600"
+                            >
+                                <Eye className="mr-1 size-3" />
+                            </Badge>
+                        ) : (
+                            <Badge
+                                variant="secondary"
+                                className="shrink-0 text-xs"
+                            >
+                                <EyeOff className="mr-1 size-3" />
+                            </Badge>
+                        )}
+                    </div>
+
+                    {/* Amount and frequency */}
+                    {category.amount && (
+                        <div className="flex items-center gap-2">
+                            <p className="text-lg font-bold text-primary">
+                                {formatAmount(category.amount)} FCFA
+                            </p>
+                            {category.is_monthly ? (
+                                <Badge
+                                    variant="outline"
+                                    className="gap-1 text-xs"
+                                >
+                                    <Repeat className="size-3" />
+                                    Mensuel
+                                </Badge>
+                            ) : (
+                                category.income_date && (
+                                    <Badge
+                                        variant="outline"
+                                        className="gap-1 text-xs"
+                                    >
+                                        <Calendar className="size-3" />
+                                        {formatDate(category.income_date)}
+                                    </Badge>
+                                )
+                            )}
+                        </div>
+                    )}
+
+                    {category.description && (
+                        <p className="line-clamp-2 text-sm text-muted-foreground">
+                            {category.description}
+                        </p>
                     )}
                 </div>
-                {category.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                        {category.description}
-                    </p>
-                )}
             </div>
 
             {/* Actions - Mobile Dropdown */}
@@ -64,7 +125,7 @@ export function IncomeCategoryCardMobile({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="shrink-0 size-9"
+                        className="size-9 shrink-0"
                     >
                         <MoreVertical className="size-5" />
                     </Button>
