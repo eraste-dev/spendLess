@@ -5,6 +5,11 @@ namespace App\Providers;
 use App\Models\Assessment\Exam;
 use App\Models\Assessment\Quiz;
 use App\Models\Blog\Article;
+use App\Models\Budget\ExpenseCategory;
+use App\Models\Budget\ExpenseSubcategory;
+use App\Models\Budget\Income;
+use App\Models\Budget\IncomeCategory;
+use App\Models\User\UserSetting;
 use App\Models\Certificate\ManageCertificate;
 use App\Models\Course\Category;
 use App\Models\Course\Course;
@@ -13,6 +18,11 @@ use App\Models\User\User;
 use App\Repositories\Assessment\ExamRepository;
 use App\Repositories\Assessment\QuizRepository;
 use App\Repositories\Blog\ArticleRepository;
+use App\Repositories\Budget\ExpenseCategoryRepository;
+use App\Repositories\Budget\ExpenseSubcategoryRepository;
+use App\Repositories\Budget\IncomeCategoryRepository;
+use App\Repositories\Budget\IncomeRepository;
+use App\Repositories\User\UserSettingRepository;
 use App\Repositories\Certificate\CertificateRepository;
 use App\Repositories\Course\CategoryRepository;
 use App\Repositories\Course\CourseRepository;
@@ -62,6 +72,28 @@ class AppServiceProvider extends ServiceProvider
         // Blog Module Repositories
         $this->app->bind(ArticleRepository::class, function ($app) {
             return new ArticleRepository(new Article());
+        });
+
+        // Budget Module Repositories
+        $this->app->bind(IncomeCategoryRepository::class, function ($app) {
+            return new IncomeCategoryRepository(new IncomeCategory());
+        });
+
+        $this->app->bind(IncomeRepository::class, function ($app) {
+            return new IncomeRepository(new Income());
+        });
+
+        $this->app->bind(ExpenseCategoryRepository::class, function ($app) {
+            return new ExpenseCategoryRepository(new ExpenseCategory());
+        });
+
+        $this->app->bind(ExpenseSubcategoryRepository::class, function ($app) {
+            return new ExpenseSubcategoryRepository(new ExpenseSubcategory());
+        });
+
+        // User Settings Repository
+        $this->app->bind(UserSettingRepository::class, function ($app) {
+            return new UserSettingRepository(new UserSetting());
         });
     }
 

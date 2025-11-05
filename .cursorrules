@@ -1,0 +1,601 @@
+# Cursor Rules - Budget App
+
+## Philosophie Mobile-First
+
+### Approche de design
+- **TOUJOURS** concevoir pour mobile en priorité, puis adapter pour desktop
+- Utiliser des breakpoints Tailwind: `sm:`, `md:`, `lg:`, `xl:`
+- Privilégier les interactions tactiles (boutons plus grands, espacements généreux)
+- Utiliser des composants de navigation adaptés: Header mobile + Sheet/Drawer
+
+### Layout
+- **Header mobile sticky** avec navigation Sheet (drawer) pour mobile
+- **Navigation desktop** dans le header avec liens horizontaux
+- **Floating Action Button (FAB)** pour l'action principale sur mobile
+- Padding responsive: `px-4` (mobile) → `sm:px-6` → `md:px-8`
+
+## Architecture générale
+
+### Modularité des composants React
+- **TOUJOURS** diviser les pages en composants réutilisables et isolés
+- Chaque composant doit avoir une responsabilité unique et claire
+- Les composants doivent communiquer avec la page parent via props
+- Éviter les pages de plus de 300 lignes - refactoriser en composants séparés
+- **Créer des variantes mobile** pour les composants complexes (ex: `-mobile` suffix)
+
+### Structure des composants
+```
+resources/js/
+├── components/
+│   ├── ui/                    # Composants UI primitifs (Radix UI wrappés)
+│   ├── ui-element-custom/     # Composants réutilisables personnalisés
+│   └── features/              # Composants métier par fonctionnalité
+│       └── budget/
+│           ├── categories/
+│           │   ├── category-list.tsx
+│           │   ├── category-card.tsx
+│           │   ├── category-form-modal.tsx
+│           │   └── category-delete-dialog.tsx
+│           └── subcategories/
+│               ├── subcategory-list.tsx
+│               └── subcategory-form-modal.tsx
+```
+
+## Patterns d'implémentation CRUD
+
+### 1. Modals pour les opérations CRUD
+- **JAMAIS** utiliser des pages séparées pour Create/Edit
+- **TOUJOURS** utiliser des Dialog modals pour les formulaires
+- **TOUJOURS** utiliser le composant `ConfirmDialog` (ui-element-custom) pour les suppressions
+
+### 2. Gestion des formulaires avec Inertia.js
+```typescript
+// Pattern pour Create
+const { data, setData, post, processing, errors, reset } = useForm({
+    name: '',
+    description: '',
+    // autres champs...
+});
+
+const handleCreate: FormEventHandler = (e) => {
+    e.preventDefault();
+    post('/route', {
+        preserveScroll: true,
+        onSuccess: () => {
+            setIsDialogOpen(false);
+            reset();
+        },
+    });
+};
+
+// Pattern pour Edit
+const handleEdit: FormEventHandler = (e) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    put(`/route/${editingItem.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            setIsDialogOpen(false);
+            setEditingItem(null);
+            reset();
+        },
+    });
+};
+
+// Pattern pour Delete
+const handleDelete = () => {
+    if (!deletingItem) return;
+
+    router.delete(`/route/${deletingItem.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            setDeletingItem(null);
+        },
+    });
+};
+```
+
+### 3. Structure des modals
+```typescript
+// Toujours séparer en 3 modals distincts:
+// 1. Modal de création
+<Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+    <DialogContent>
+        <form onSubmit={handleCreate}>
+            {/* Formulaire */}
+        </form>
+    </DialogContent>
+</Dialog>
+
+// 2. Modal d'édition
+<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+    {/* Même structure que création */}
+</Dialog>
+
+// 3. Dialog de confirmation de suppression
+<ConfirmDialog
+    open={isDeleteDialogOpen}
+    onOpenChange={setIsDeleteDialogOpen}
+    onConfirm={handleDelete}
+    title="Supprimer cet élément ?"
+    description="Description de l'action irréversible..."
+    variant="danger"
+/>
+```
+
+### 4. Composants UI réutilisables
+
+#### Composant de confirmation (ui-element-custom)
+- Utiliser `ConfirmDialog` avec variants: `danger`, `warning`, `info`
+- Personnaliser title, description, confirmText, cancelText
+- Gérer le loading state avec `isLoading` prop
+
+#### Formulaires
+- Toujours valider avec Form Request côté backend
+- Afficher les erreurs avec: `className={errors.field ? 'border-red-500' : ''}`
+- Utiliser `Textarea` pour les descriptions longues
+- Utiliser `Input type="color"` pour les sélecteurs de couleur
+
+## Backend Laravel
+
+### 1. Repository Pattern
+- **TOUJOURS** utiliser le pattern Repository pour l'accès aux données
+- Étendre `BaseRepository` pour les opérations CRUD de base
+- Injecter les repositories dans les constructeurs de contrôleurs
+
+### 2. Form Request Validation
+- Créer des Form Requests séparés pour Store et Update
+- Placer dans `app/Http/Requests/{Module}/`
+
+### 3. Contrôleurs Inertia
+```php
+// Pattern pour index
+public function index(Request $request)
+{
+    $data = $this->repository->getAllForUser(auth()->id());
+
+    if ($request->wantsJson()) {
+        return response()->json([
+            'message' => 'Success',
+            'data' => ['items' => $data],
+            'status' => 200,
+        ]);
+    }
+
+    return Inertia::render('module/page', [
+        'items' => $data,
+    ]);
+}
+
+// Pattern pour store/update/destroy
+// Toujours retourner avec preserveScroll
+return redirect()
+    ->route('route.index')
+    ->with('success', 'Message de succès');
+```
+
+### 4. Routes
+```php
+// Toujours utiliser resource routes
+Route::resource('resource-name', Controller::class);
+
+// Actions supplémentaires en POST
+Route::post('resource/{id}/toggle-active', [Controller::class, 'toggleActive']);
+```
+
+## Frontend React/TypeScript
+
+### 1. Types et interfaces
+```typescript
+// Toujours définir les interfaces au début du fichier
+interface Category {
+    id: number;
+    name: string;
+    description: string | null;
+    // autres champs...
+}
+
+interface Props {
+    categories: Category[];
+}
+```
+
+### 2. State management
+```typescript
+// Grouper les states liés
+const [editingItem, setEditingItem] = useState<Item | null>(null);
+const [deletingItem, setDeletingItem] = useState<Item | null>(null);
+const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+```
+
+### 3. Composants de liste
+- Utiliser Card pour afficher les éléments
+- Afficher un état vide avec message et bouton CTA
+- Utiliser Badge pour les statuts (Actif/Inactif)
+- Utiliser des couleurs visuelles (color box) pour les catégories
+
+### 4. Navigation
+- Utiliser `<Link>` d'Inertia pour la navigation
+- Ajouter `prefetch` pour améliorer les performances
+- Utiliser `Button onClick` pour ouvrir les modals (pas de Link)
+
+## Seeders
+
+### Pattern pour les seeders de budget
+```php
+// 1. Récupérer l'utilisateur de test
+$user = User::where('email', 'test@example.com')->first();
+
+// 2. Nettoyer les données existantes
+Category::where('user_id', $user->id)->delete();
+
+// 3. Créer les catégories avec user_id
+foreach ($categories as $category) {
+    Category::create(array_merge($category, ['user_id' => $user->id]));
+}
+
+// 4. Afficher un résumé
+$this->command->info('✓ X catégories créées');
+```
+
+## Composants à créer pour refactorisation
+
+### Pour les catégories de revenus/dépenses:
+
+1. **CategoryList.tsx** - Liste des catégories
+   - Props: categories, onEdit, onDelete, onCreate
+   - Affiche les cartes de catégories
+   - Gère l'état vide
+
+2. **CategoryCard.tsx** - Carte individuelle de catégorie
+   - Props: category, onEdit, onDelete
+   - Affiche les informations de la catégorie
+   - Boutons d'action (Modifier, Supprimer)
+
+3. **CategoryFormModal.tsx** - Modal de formulaire réutilisable
+   - Props: isOpen, onClose, onSubmit, category (optionnel pour edit), fields, processing, errors
+   - Gère à la fois création et édition
+   - Composant générique réutilisable
+
+4. **SubcategoryList.tsx** - Liste des sous-catégories (pour dépenses)
+   - Props: subcategories, onEdit, onDelete, onCreate
+   - Utilisable dans un Collapsible
+
+## Règles de style
+
+### Tailwind CSS
+- Utiliser les classes utilitaires Tailwind v4
+- Privilégier `size-*` au lieu de `h-* w-*`
+- Utiliser `gap-*` pour l'espacement flex/grid
+- Utiliser les variables de couleur du thème (`bg-card`, `text-muted-foreground`)
+
+### Composants Radix UI
+- Toujours wrapper les composants Radix dans `components/ui/`
+- Utiliser `cn()` de `lib/utils` pour merger les classes
+- Suivre le pattern shadcn/ui pour la structure
+
+## Tests et qualité
+
+### Avant de commit
+1. Vérifier que tous les CRUD fonctionnent (Create, Read, Update, Delete)
+2. Tester la validation des formulaires
+3. Tester les états vides
+4. Vérifier la responsivité mobile
+5. S'assurer qu'il n'y a pas d'erreurs console
+
+### Build
+- Toujours tester avec `npm run build` avant de commit
+- Vérifier que les types TypeScript sont corrects
+- Installer les dépendances manquantes (ex: @radix-ui/react-alert-dialog)
+
+## Bonnes pratiques de refactorisation
+
+1. **Identifier les sections répétitives** - Extraire en composants
+2. **Props claires et typées** - Toujours définir les interfaces Props
+3. **Communication parent-enfant** - Utiliser des callbacks pour remonter les événements
+4. **Éviter la duplication** - Un même formulaire peut servir pour Create et Edit
+5. **Composants atomiques** - Petits composants réutilisables plutôt qu'un gros composant
+
+## Exemple de refactorisation
+
+### Avant (page monolithique)
+```typescript
+// Page de 800 lignes avec tout le code
+export default function Index({ categories }) {
+    // 50 lignes de state
+    // 200 lignes de handlers
+    // 550 lignes de JSX avec modals
+}
+```
+
+### Après (page refactorisée)
+```typescript
+// Page principale - 100 lignes
+export default function Index({ categories }) {
+    return (
+        <AppLayout>
+            <CategoryList
+                categories={categories}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onCreate={handleCreate}
+            />
+            <CategoryFormModal {...modalProps} />
+            <ConfirmDialog {...deleteProps} />
+        </AppLayout>
+    );
+}
+
+// CategoryList.tsx - 80 lignes
+// CategoryCard.tsx - 50 lignes
+// CategoryFormModal.tsx - 150 lignes (réutilisable)
+```
+
+## Conventions de nommage
+
+### Fichiers
+- Composants React: `kebab-case.tsx` (ex: `category-form-modal.tsx`)
+- Types: `PascalCase` (ex: `CategoryFormProps`)
+- Fonctions: `camelCase` (ex: `handleCreateCategory`)
+
+### Props
+- Event handlers: `onAction` (ex: `onEdit`, `onDelete`, `onCreate`)
+- Boolean: `isState` ou `hasState` (ex: `isOpen`, `hasError`)
+- Data: nom descriptif (ex: `category`, `categories`, `processing`)
+
+## Sécurité
+
+- **JAMAIS** exposer les données sensibles dans les props Inertia
+- Toujours valider les permissions côté backend
+- Utiliser les Form Requests pour la validation
+- Vérifier que `user_id` correspond à `auth()->id()` pour les opérations CRUD
+
+## Performance
+
+- Utiliser `preserveScroll: true` dans les opérations Inertia
+- Ajouter `prefetch` sur les Links pour améliorer la navigation
+- Éviter les re-renders inutiles avec des composants bien découplés
+- Utiliser `React.memo()` si nécessaire pour les listes longues
+
+## Design Mobile-First - Patterns UX
+
+### Header et Navigation
+
+#### Mobile Header Layout (`mobile-header-layout.tsx`)
+```typescript
+// Header sticky avec logo, navigation desktop, et menu mobile
+<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur">
+    <div className="container flex h-16 items-center justify-between px-4">
+        {/* Logo */}
+        <Link href="/dashboard" className="flex items-center gap-2">
+            <Wallet className="size-6" />
+            <span className="hidden sm:inline">Budget App</span>
+        </Link>
+
+        {/* Navigation Desktop (hidden on mobile) */}
+        <nav className="hidden md:flex items-center gap-1">
+            {/* Links */}
+        </nav>
+
+        {/* Menu mobile avec Sheet */}
+        <Sheet>
+            <SheetTrigger className="md:hidden">
+                <Menu className="size-6" />
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[280px]">
+                {/* Navigation mobile */}
+            </SheetContent>
+        </Sheet>
+    </div>
+</header>
+```
+
+### Cards et Listes
+
+#### Card Mobile (Touch-Friendly)
+```typescript
+// Taille tactile: min 44x44px pour les boutons
+// Espacement généreux: gap-3 ou gap-4
+// Arrondi moderne: rounded-xl au lieu de rounded-lg
+<div className="flex items-center gap-3 rounded-xl border bg-card p-4 active:bg-muted/50">
+    {/* Color indicator - plus grand sur mobile */}
+    <div className="size-12 shrink-0 rounded-lg" style={{ backgroundColor }} />
+
+    {/* Content avec truncate pour éviter débordement */}
+    <div className="flex-1 min-w-0">
+        <h3 className="font-semibold text-base truncate">{name}</h3>
+        <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+    </div>
+
+    {/* Actions dans un dropdown pour économiser l'espace */}
+    <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="size-9">
+                <MoreVertical className="size-5" />
+            </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+            <DropdownMenuItem>Modifier</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive">Supprimer</DropdownMenuItem>
+        </DropdownMenuContent>
+    </DropdownMenu>
+</div>
+```
+
+### Empty States
+
+```typescript
+// Empty state centré avec icône, titre, description et CTA
+<div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+    <div className="flex size-16 items-center justify-center rounded-full bg-muted mb-4">
+        <Inbox className="size-8 text-muted-foreground" />
+    </div>
+    <h3 className="text-lg font-semibold mb-2">Aucune catégorie</h3>
+    <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+        Commencez par créer votre première catégorie
+    </p>
+    <Button onClick={onCreate} size="lg" className="rounded-full">
+        <Plus className="mr-2 size-5" />
+        Créer une catégorie
+    </Button>
+</div>
+```
+
+### Floating Action Button (FAB)
+
+```typescript
+// Bouton flottant pour action principale (visible si liste non vide)
+{items.length > 0 && (
+    <Button
+        onClick={onCreate}
+        size="lg"
+        className="fixed bottom-6 right-6 size-14 rounded-full shadow-lg hover:shadow-xl transition-shadow z-40"
+    >
+        <Plus className="size-6" />
+    </Button>
+)}
+```
+
+### Modals Mobile-Optimisés
+
+#### Structure de Dialog Mobile
+```typescript
+<DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-0">
+    <form className="flex flex-col">
+        {/* Header collant avec bouton close */}
+        <div className="sticky top-0 bg-background border-b px-4 sm:px-6 py-4 z-10">
+            <div className="flex items-center justify-between">
+                <div className="flex-1">
+                    <DialogTitle className="text-lg sm:text-xl">Titre</DialogTitle>
+                    <DialogDescription className="text-sm mt-1">
+                        Description
+                    </DialogDescription>
+                </div>
+                <Button type="button" variant="ghost" size="icon" onClick={onClose}>
+                    <X className="size-5" />
+                </Button>
+            </div>
+        </div>
+
+        {/* Contenu scrollable */}
+        <div className="space-y-5 px-4 sm:px-6 py-6">
+            {/* Inputs avec taille tactile */}
+            <Input className="h-12 text-base" />
+            <Textarea className="text-base resize-none" />
+        </div>
+
+        {/* Footer collant avec actions */}
+        <div className="sticky bottom-0 bg-background border-t px-4 sm:px-6 py-4 mt-auto">
+            <div className="flex gap-3">
+                <Button variant="outline" className="flex-1 h-12 text-base">
+                    Annuler
+                </Button>
+                <Button type="submit" className="flex-1 h-12 text-base">
+                    Confirmer
+                </Button>
+            </div>
+        </div>
+    </form>
+</DialogContent>
+```
+
+### Typographie Responsive
+
+```typescript
+// Titres avec tailles adaptatives
+<h1 className="text-2xl sm:text-3xl font-bold">Titre</h1>
+<p className="text-sm sm:text-base text-muted-foreground">Sous-titre</p>
+
+// Compteur de liste
+<p className="text-sm text-muted-foreground">
+    {count} {count > 1 ? 'catégories' : 'catégorie'}
+</p>
+```
+
+### Interactions Tactiles
+
+#### États actifs (feedback tactile)
+```typescript
+// Ajouter active: pour feedback immédiat au touch
+className="... active:bg-muted/50 transition-colors"
+```
+
+#### Tailles minimales (touch targets)
+- Boutons: minimum `h-12` ou `size-9` pour les icons
+- Icons cliquables: minimum `size-5`
+- Zones de tap: minimum 44x44px (règle WCAG)
+
+### Spacing Mobile
+
+```typescript
+// Padding de page responsive
+<main className="container mx-auto px-4 py-6 md:py-8">
+
+// Gap entre éléments
+<div className="space-y-3">  // Listes
+<div className="gap-3">      // Flex/Grid
+<div className="mb-6">       // Sections
+```
+
+### Colors et Borders
+
+```typescript
+// Bordures plus visibles sur mobile
+border-2  // Au lieu de border
+
+// Ombres pour profondeur
+shadow-lg hover:shadow-xl
+
+// Backdrop blur pour headers
+bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60
+```
+
+### Patterns de Chargement
+
+```typescript
+// Boutons avec état loading
+<Button disabled={processing}>
+    {processing ? 'Enregistrement...' : 'Enregistrer'}
+</Button>
+
+// Désactiver interactions pendant traitement
+disabled={processing}
+```
+
+## Checklist Design Mobile
+
+Avant de valider une page mobile:
+- [ ] Header sticky fonctionnel avec menu mobile
+- [ ] FAB pour action principale (si applicable)
+- [ ] Tous les boutons font minimum 44x44px
+- [ ] Text lisible: minimum 14px (text-sm)
+- [ ] Espacement généreux entre éléments (gap-3 minimum)
+- [ ] Empty states avec icônes et CTA clairs
+- [ ] Modals scrollables avec headers/footers collants
+- [ ] Feedback tactile (active:) sur éléments interactifs
+- [ ] Truncate ou line-clamp sur textes longs
+- [ ] Responsive breakpoints testés (mobile, tablet, desktop)
+- [ ] Navigation touch-friendly (pas de hover requis)
+- [ ] Z-index correctement gérés (header: z-50, FAB: z-40, modals: z-50)
+
+## Exemples de Composants Mobile
+
+### Structure de fichiers
+```
+components/features/budget/
+├── income-category-card.tsx          # Version desktop
+├── income-category-card-mobile.tsx   # Version mobile optimisée
+├── income-category-list-mobile.tsx
+└── income-category-form-modal-mobile.tsx
+```
+
+### Suffixes de nommage
+- `-mobile`: Composant optimisé mobile-first
+- Pas de suffixe: Composant desktop ou adaptatif
+
+### Quand créer une variante mobile?
+- Si le composant desktop est trop complexe/dense
+- Si l'interaction change significativement (ex: dropdown vs boutons)
+- Si le layout change radicalement entre mobile et desktop
