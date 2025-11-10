@@ -14,25 +14,26 @@ class Income extends Model
 
     protected $fillable = [
         'user_id',
-        'income_category_id',
+        'name',
         'description',
         'amount',
+        'is_monthly',
         'income_date',
-        'is_recurring',
-        'recurrence_day',
-        'next_occurrence',
+        'color',
+        'order',
+        'is_active',
     ];
 
     protected $casts = [
+        'is_active' => 'boolean',
+        'is_monthly' => 'boolean',
+        'order' => 'integer',
         'amount' => 'decimal:2',
         'income_date' => 'date',
-        'next_occurrence' => 'date',
-        'is_recurring' => 'boolean',
-        'recurrence_day' => 'integer',
     ];
 
     /**
-     * Relation avec l'utilisateur
+     * Get the user that owns the income.
      */
     public function user(): BelongsTo
     {
@@ -40,54 +41,18 @@ class Income extends Model
     }
 
     /**
-     * Relation avec la catégorie de revenu
+     * Scope to get only active incomes.
      */
-    public function category(): BelongsTo
+    public function scopeActive($query)
     {
-        return $this->belongsTo(IncomeCategory::class, 'income_category_id');
+        return $query->where('is_active', true);
     }
 
     /**
-     * Scope pour les revenus d'un utilisateur
+     * Scope to order incomes by order field.
      */
-    public function scopeForUser($query, int $userId)
+    public function scopeOrdered($query)
     {
-        return $query->where('user_id', $userId);
-    }
-
-    /**
-     * Scope pour les revenus d'un mois spécifique
-     */
-    public function scopeForMonth($query, int $year, int $month)
-    {
-        return $query->whereYear('income_date', $year)
-                     ->whereMonth('income_date', $month);
-    }
-
-    /**
-     * Scope pour les revenus récurrents
-     */
-    public function scopeRecurring($query)
-    {
-        return $query->where('is_recurring', true);
-    }
-
-    /**
-     * Calculer la prochaine occurrence si récurrent
-     */
-    public function calculateNextOccurrence(): ?string
-    {
-        if (!$this->is_recurring || !$this->recurrence_day) {
-            return null;
-        }
-
-        $currentDate = $this->income_date;
-        $nextMonth = $currentDate->copy()->addMonth();
-
-        // Ajuster si le jour n'existe pas dans le mois suivant
-        $day = min($this->recurrence_day, $nextMonth->daysInMonth);
-        $nextMonth->day = $day;
-
-        return $nextMonth->format('Y-m-d');
+        return $query->orderBy('order', 'asc');
     }
 }

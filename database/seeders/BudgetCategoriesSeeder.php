@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Budget\ExpenseCategory;
 use App\Models\Budget\ExpenseSubcategory;
-use App\Models\Budget\IncomeCategory;
+use App\Models\Budget\Income;
 use App\Models\User\User;
 use Illuminate\Database\Seeder;
 
@@ -27,7 +27,7 @@ class BudgetCategoriesSeeder extends Seeder
 
         // Nettoyer les catégories existantes pour cet utilisateur
         ExpenseCategory::where('user_id', $user->id)->delete();
-        IncomeCategory::where('user_id', $user->id)->delete();
+        Income::where('user_id', $user->id)->delete();
 
         // ============================================
         // CATÉGORIES DE REVENUS
@@ -83,10 +83,10 @@ class BudgetCategoriesSeeder extends Seeder
         ];
 
         foreach ($incomeCategories as $category) {
-            IncomeCategory::create(array_merge($category, ['user_id' => $user->id]));
+            Income::create(array_merge($category, ['user_id' => $user->id]));
         }
 
-        $this->command->info('✓ ' . count($incomeCategories) . ' catégories de revenus créées');
+        $this->command->info('✓ ' . count($incomeCategories) . ' revenus créés');
 
         // ============================================
         // CATÉGORIES DE DÉPENSES
@@ -186,7 +186,7 @@ class BudgetCategoriesSeeder extends Seeder
         // ============================================
         // RÉSUMÉ
         // ============================================
-        $totalIncomeCategories = IncomeCategory::where('user_id', $user->id)->count();
+        $totalIncomes = Income::where('user_id', $user->id)->count();
         $totalExpenseCategories = ExpenseCategory::where('user_id', $user->id)->count();
         $totalSubcategories = ExpenseSubcategory::whereHas('category', function ($query) use ($user) {
             $query->where('user_id', $user->id);
@@ -197,7 +197,7 @@ class BudgetCategoriesSeeder extends Seeder
         $this->command->info('✅ Seeding terminé avec succès !');
         $this->command->info('========================================');
         $this->command->info('📊 Résumé:');
-        $this->command->info("   • Catégories de revenus: {$totalIncomeCategories}");
+        $this->command->info("   • Revenus: {$totalIncomes}");
         $this->command->info("   • Catégories de dépenses: {$totalExpenseCategories}");
         $this->command->info("   • Sous-catégories de dépenses: {$totalSubcategories}");
         $this->command->info('========================================');

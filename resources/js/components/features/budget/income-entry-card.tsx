@@ -1,4 +1,4 @@
-import { Income, UserSettings } from '@/types/budget';
+import { IncomeEntry, UserSettings } from '@/types/budget';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -8,25 +8,25 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Edit, MoreVertical, Trash2, RepeatIcon } from 'lucide-react';
 
-interface IncomeCardMobileProps {
-    income: Income;
+interface IncomeEntryCardProps {
+    incomeEntry: IncomeEntry;
     settings: UserSettings;
-    onEdit: (income: Income) => void;
-    onDelete: (income: Income) => void;
+    onEdit: (incomeEntry: IncomeEntry) => void;
+    onDelete: (incomeEntry: IncomeEntry) => void;
 }
 
-export function IncomeCardMobile({
-    income,
+export function IncomeEntryCard({
+    incomeEntry,
     settings,
     onEdit,
     onDelete,
-}: IncomeCardMobileProps) {
+}: IncomeEntryCardProps) {
     const formattedAmount = new Intl.NumberFormat('fr-FR', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2,
-    }).format(income.amount);
+    }).format(incomeEntry.amount);
 
-    const formattedDate = new Date(income.income_date).toLocaleDateString('fr-FR', {
+    const formattedDate = new Date(incomeEntry.income_date).toLocaleDateString('fr-FR', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -37,15 +37,15 @@ export function IncomeCardMobile({
             <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-base truncate">
-                        {income.category?.name || 'Sans catégorie'}
+                        {incomeEntry.income?.name || 'Sans revenu'}
                     </h3>
-                    {income.is_recurring && (
+                    {incomeEntry.is_recurring && (
                         <RepeatIcon className="size-4 text-muted-foreground shrink-0" />
                     )}
                 </div>
-                {income.description && (
+                {incomeEntry.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2">
-                        {income.description}
+                        {incomeEntry.description}
                     </p>
                 )}
                 <p className="text-xs text-muted-foreground">{formattedDate}</p>
@@ -71,12 +71,12 @@ export function IncomeCardMobile({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(income)}>
+                        <DropdownMenuItem onClick={() => onEdit(incomeEntry)}>
                             <Edit className="mr-2 size-4" />
                             Modifier
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            onClick={() => onDelete(income)}
+                            onClick={() => onDelete(incomeEntry)}
                             className="text-destructive focus:text-destructive"
                         >
                             <Trash2 className="mr-2 size-4" />

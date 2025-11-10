@@ -1,4 +1,5 @@
-import AppLayout from '@/layouts/app-layout';
+import { ConfirmDialog } from '@/components/ui-element-custom/confirm-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -7,6 +8,11 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
     Dialog,
     DialogContent,
@@ -18,16 +24,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { ConfirmDialog } from '@/components/ui-element-custom/confirm-dialog';
-import { Plus, Edit, Trash2, Eye, EyeOff, ChevronRight } from 'lucide-react';
-import { Head, useForm, router } from '@inertiajs/react';
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { useState, FormEventHandler } from 'react';
+import AppLayout from '@/layouts/app-layout';
+import { Head, router, useForm } from '@inertiajs/react';
+import { ChevronRight, Edit, Eye, EyeOff, Plus, Trash2 } from 'lucide-react';
+import { FormEventHandler, useState } from 'react';
 
 interface ExpenseSubcategory {
     id: number;
@@ -255,16 +255,7 @@ export default function Index({ categories }: Props) {
     };
 
     return (
-        <AppLayout
-            breadcrumbs={[
-                { title: 'Dashboard', href: '/dashboard' },
-                { title: 'Budget', href: '#' },
-                {
-                    title: 'Catégories de dépenses',
-                    href: '/budget/expense-categories',
-                },
-            ]}
-        >
+        <AppLayout>
             <Head title="Catégories de dépenses" />
 
             <div className="space-y-6">
@@ -291,8 +282,7 @@ export default function Index({ categories }: Props) {
                                     Aucune catégorie de dépenses
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    Commencez par créer votre première
-                                    catégorie
+                                    Commencez par créer votre première catégorie
                                 </p>
                                 <Button
                                     className="mt-4"
@@ -346,7 +336,11 @@ export default function Index({ categories }: Props) {
                                                         'Aucune description'}
                                                     {category.target_percentage && (
                                                         <span className="ml-2 font-medium">
-                                                            • {category.target_percentage}% du budget
+                                                            •{' '}
+                                                            {
+                                                                category.target_percentage
+                                                            }
+                                                            % du budget
                                                         </span>
                                                     )}
                                                 </CardDescription>
@@ -409,7 +403,11 @@ export default function Index({ categories }: Props) {
                                                                         : ''
                                                                 }`}
                                                             />
-                                                            {category.subcategories.length}{' '}
+                                                            {
+                                                                category
+                                                                    .subcategories
+                                                                    .length
+                                                            }{' '}
                                                             sous-catégorie(s)
                                                         </Button>
                                                     </CollapsibleTrigger>
@@ -691,10 +689,7 @@ export default function Index({ categories }: Props) {
                             >
                                 Annuler
                             </Button>
-                            <Button
-                                type="submit"
-                                disabled={processingCategory}
-                            >
+                            <Button type="submit" disabled={processingCategory}>
                                 {processingCategory ? 'Création...' : 'Créer'}
                             </Button>
                         </DialogFooter>
@@ -887,10 +882,7 @@ export default function Index({ categories }: Props) {
                             >
                                 Annuler
                             </Button>
-                            <Button
-                                type="submit"
-                                disabled={processingCategory}
-                            >
+                            <Button type="submit" disabled={processingCategory}>
                                 {processingCategory
                                     ? 'Enregistrement...'
                                     : 'Enregistrer'}
@@ -920,9 +912,7 @@ export default function Index({ categories }: Props) {
                 <DialogContent className="sm:max-w-[500px]">
                     <form onSubmit={handleCreateSubcategory}>
                         <DialogHeader>
-                            <DialogTitle>
-                                Nouvelle sous-catégorie
-                            </DialogTitle>
+                            <DialogTitle>Nouvelle sous-catégorie</DialogTitle>
                             <DialogDescription>
                                 Créez une nouvelle sous-catégorie pour mieux
                                 organiser vos dépenses

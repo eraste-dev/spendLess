@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { X } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
-interface IncomeCategoryFormData {
+interface IncomeFormData {
     name: string;
     description: string;
     amount: string;
@@ -21,18 +21,18 @@ interface IncomeCategoryFormData {
     color: string;
 }
 
-interface IncomeCategoryFormModalMobileProps {
+interface IncomeFormModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: FormEventHandler;
-    data: IncomeCategoryFormData;
-    setData: (field: keyof IncomeCategoryFormData, value: string) => void;
-    errors: Partial<Record<keyof IncomeCategoryFormData, string>>;
+    data: IncomeFormData;
+    setData: (field: keyof IncomeFormData, value: string) => void;
+    errors: Partial<Record<keyof IncomeFormData, string>>;
     processing: boolean;
     mode: 'create' | 'edit';
 }
 
-export function IncomeCategoryFormModalMobile({
+export function IncomeFormModal({
     isOpen,
     onClose,
     onSubmit,
@@ -41,7 +41,7 @@ export function IncomeCategoryFormModalMobile({
     errors,
     processing,
     mode,
-}: IncomeCategoryFormModalMobileProps) {
+}: IncomeFormModalProps) {
     const isCreate = mode === 'create';
 
     return (
@@ -54,13 +54,13 @@ export function IncomeCategoryFormModalMobile({
                             <div className="flex-1">
                                 <DialogTitle className="text-lg sm:text-xl">
                                     {isCreate
-                                        ? 'Nouvelle catégorie'
-                                        : 'Modifier la catégorie'}
+                                        ? 'Nouveau revenu'
+                                        : 'Modifier le revenu'}
                                 </DialogTitle>
                                 <DialogDescription className="mt-1 text-sm">
                                     {isCreate
-                                        ? 'Créez une catégorie pour classer vos revenus'
-                                        : 'Modifiez les informations de la catégorie'}
+                                        ? 'Créez une nouvelle source de revenu'
+                                        : 'Modifiez les informations du revenu'}
                                 </DialogDescription>
                             </div>
                             <Button
@@ -84,7 +84,7 @@ export function IncomeCategoryFormModalMobile({
                                 htmlFor={`${mode}-name`}
                                 className="text-base font-medium"
                             >
-                                Nom de la catégorie *
+                                Nom du revenu *
                             </Label>
                             <Input
                                 id={`${mode}-name`}
@@ -199,7 +199,7 @@ export function IncomeCategoryFormModalMobile({
                                 htmlFor={`${mode}-color`}
                                 className="text-base font-medium"
                             >
-                                Couleur de la catégorie
+                                Couleur du revenu
                             </Label>
                             <div className="flex flex-col gap-3">
                                 {/* Color preview and picker button */}

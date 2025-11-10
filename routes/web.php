@@ -17,26 +17,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Budget Routes
     Route::prefix('budget')->name('budget.')->group(function () {
-        // Incomes (Revenus)
-        Route::get('/incomes', [\App\Http\Controllers\Budget\IncomeController::class, 'index'])->name('incomes.index');
-        Route::post('/incomes', [\App\Http\Controllers\Budget\IncomeController::class, 'store'])->name('incomes.store');
-        Route::put('/incomes/{id}', [\App\Http\Controllers\Budget\IncomeController::class, 'update'])->name('incomes.update');
-        Route::delete('/incomes/{id}', [\App\Http\Controllers\Budget\IncomeController::class, 'destroy'])->name('incomes.destroy');
+        // Income Entries (API for individual income entries)
+        Route::get('/income-entries', [\App\Http\Controllers\Budget\IncomeEntryController::class, 'index'])->name('income-entries.index');
+        Route::post('/income-entries', [\App\Http\Controllers\Budget\IncomeEntryController::class, 'store'])->name('income-entries.store');
+        Route::put('/income-entries/{id}', [\App\Http\Controllers\Budget\IncomeEntryController::class, 'update'])->name('income-entries.update');
+        Route::delete('/income-entries/{id}', [\App\Http\Controllers\Budget\IncomeEntryController::class, 'destroy'])->name('income-entries.destroy');
+        Route::post('/income-entries/plan-months', [\App\Http\Controllers\Budget\IncomeEntryController::class, 'planMonths'])->name('income-entries.plan-months');
 
         // Settings (Configuration)
         Route::get('/settings', [\App\Http\Controllers\Budget\SettingsController::class, 'index'])->name('settings.index');
         Route::put('/settings', [\App\Http\Controllers\Budget\SettingsController::class, 'update'])->name('settings.update');
 
-        // Income Categories
-        Route::resource('income-categories', \App\Http\Controllers\Budget\IncomeCategoryController::class);
-        Route::post('income-categories/{id}/toggle-active', [
-            \App\Http\Controllers\Budget\IncomeCategoryController::class,
+        // Incomes
+        Route::resource('incomes', \App\Http\Controllers\Budget\IncomeController::class);
+        Route::post('incomes/{id}/toggle-active', [
+            \App\Http\Controllers\Budget\IncomeController::class,
             'toggleActive'
-        ])->name('income-categories.toggle-active');
-        Route::post('income-categories/update-order', [
-            \App\Http\Controllers\Budget\IncomeCategoryController::class,
+        ])->name('incomes.toggle-active');
+        Route::post('incomes/update-order', [
+            \App\Http\Controllers\Budget\IncomeController::class,
             'updateOrder'
-        ])->name('income-categories.update-order');
+        ])->name('incomes.update-order');
+        Route::post('incomes/plan-months', [
+            \App\Http\Controllers\Budget\IncomeController::class,
+            'planMonths'
+        ])->name('incomes.plan-months');
 
         // Expense Categories
         Route::resource('expense-categories', \App\Http\Controllers\Budget\ExpenseCategoryController::class);

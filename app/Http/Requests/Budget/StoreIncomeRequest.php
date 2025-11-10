@@ -22,12 +22,14 @@ class StoreIncomeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'income_category_id' => ['required', 'exists:income_categories,id'],
-            'description' => ['nullable', 'string', 'max:255'],
-            'amount' => ['required', 'numeric', 'min:0'],
-            'income_date' => ['required', 'date'],
-            'is_recurring' => ['boolean'],
-            'recurrence_day' => ['nullable', 'integer', 'min:1', 'max:31'],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'amount' => ['nullable', 'numeric', 'min:0'],
+            'is_monthly' => ['nullable', 'boolean'],
+            'income_date' => ['nullable', 'date', 'required_if:is_monthly,false'],
+            'color' => ['nullable', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'order' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 
@@ -37,15 +39,15 @@ class StoreIncomeRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'income_category_id.required' => 'La catégorie est obligatoire.',
-            'income_category_id.exists' => 'La catégorie sélectionnée n\'existe pas.',
-            'amount.required' => 'Le montant est obligatoire.',
+            'name.required' => 'Le nom de la catégorie est requis.',
+            'name.max' => 'Le nom ne doit pas dépasser 255 caractères.',
             'amount.numeric' => 'Le montant doit être un nombre.',
             'amount.min' => 'Le montant doit être positif.',
-            'income_date.required' => 'La date est obligatoire.',
-            'income_date.date' => 'La date n\'est pas valide.',
-            'recurrence_day.min' => 'Le jour doit être entre 1 et 31.',
-            'recurrence_day.max' => 'Le jour doit être entre 1 et 31.',
+            'income_date.required_if' => 'La date du revenu est requise pour les revenus non mensuels.',
+            'income_date.date' => 'La date du revenu doit être une date valide.',
+            'color.regex' => 'Le format de la couleur doit être hexadécimal (ex: #3b82f6).',
+            'order.integer' => 'L\'ordre doit être un nombre entier.',
+            'order.min' => 'L\'ordre doit être un nombre positif.',
         ];
     }
 }

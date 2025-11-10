@@ -6,7 +6,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { IncomeCategory } from '@/types/budget';
+import { Income } from '@/types/budget';
 import {
     Calendar,
     Edit,
@@ -17,10 +17,10 @@ import {
     Trash2,
 } from 'lucide-react';
 
-interface IncomeCategoryCardMobileProps {
-    category: IncomeCategory;
-    onEdit: (category: IncomeCategory) => void;
-    onDelete: (category: IncomeCategory) => void;
+interface IncomeCardProps {
+    income: Income;
+    onEdit: (income: Income) => void;
+    onDelete: (income: Income) => void;
 }
 
 const formatAmount = (amount: number | null) => {
@@ -40,23 +40,23 @@ const formatDate = (date: string | null) => {
     });
 };
 
-export function IncomeCategoryCardMobile({
-    category,
+export function IncomeCard({
+    income,
     onEdit,
     onDelete,
-}: IncomeCategoryCardMobileProps) {
+}: IncomeCardProps) {
     return (
         <div className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors active:bg-muted/50">
             {/* Clickable area for editing */}
             <div
                 className="flex min-w-0 flex-1 cursor-pointer items-center gap-3"
-                onClick={() => onEdit(category)}
+                onClick={() => onEdit(income)}
             >
                 {/* Color Indicator */}
                 <div
                     className="size-12 shrink-0 rounded-lg border-2"
                     style={{
-                        backgroundColor: category.color,
+                        backgroundColor: income.color,
                     }}
                 />
 
@@ -64,9 +64,9 @@ export function IncomeCategoryCardMobile({
                 <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-center gap-2">
                         <h3 className="truncate text-base font-semibold">
-                            {category.name}
+                            {income.name}
                         </h3>
-                        {category.is_active ? (
+                        {income.is_active ? (
                             <Badge
                                 variant="default"
                                 className="shrink-0 bg-green-500 text-xs hover:bg-green-600"
@@ -84,12 +84,12 @@ export function IncomeCategoryCardMobile({
                     </div>
 
                     {/* Amount and frequency */}
-                    {category.amount && (
+                    {income.amount && (
                         <div className="flex items-center gap-2">
                             <p className="text-lg font-bold text-primary">
-                                {formatAmount(category.amount)} FCFA
+                                {formatAmount(income.amount)} FCFA
                             </p>
-                            {category.is_monthly ? (
+                            {income.is_monthly ? (
                                 <Badge
                                     variant="outline"
                                     className="gap-1 text-xs"
@@ -98,22 +98,22 @@ export function IncomeCategoryCardMobile({
                                     Mensuel
                                 </Badge>
                             ) : (
-                                category.income_date && (
+                                income.income_date && (
                                     <Badge
                                         variant="outline"
                                         className="gap-1 text-xs"
                                     >
                                         <Calendar className="size-3" />
-                                        {formatDate(category.income_date)}
+                                        {formatDate(income.income_date)}
                                     </Badge>
                                 )
                             )}
                         </div>
                     )}
 
-                    {category.description && (
+                    {income.description && (
                         <p className="line-clamp-2 text-sm text-muted-foreground">
-                            {category.description}
+                            {income.description}
                         </p>
                     )}
                 </div>
@@ -132,14 +132,14 @@ export function IncomeCategoryCardMobile({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem
-                        onClick={() => onEdit(category)}
+                        onClick={() => onEdit(income)}
                         className="cursor-pointer"
                     >
                         <Edit className="mr-2 size-4" />
                         Modifier
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                        onClick={() => onDelete(category)}
+                        onClick={() => onDelete(income)}
                         className="cursor-pointer text-destructive focus:text-destructive"
                     >
                         <Trash2 className="mr-2 size-4" />

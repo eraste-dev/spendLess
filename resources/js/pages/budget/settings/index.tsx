@@ -8,7 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import MobileHeaderLayout from '@/layouts/mobile-header-layout';
+import AppLayout from '@/layouts/app-layout';
 import { update } from '@/routes/budget/settings';
 import { Currency, UserSettings } from '@/types/budget';
 import { Head, useForm } from '@inertiajs/react';
@@ -60,7 +60,7 @@ export default function SettingsIndex({
     };
 
     return (
-        <MobileHeaderLayout>
+        <AppLayout>
             <Head title="Configuration" />
 
             <div className="px-4 py-6 md:py-8">
@@ -253,6 +253,6 @@ export default function SettingsIndex({
                     </div>
                 </form>
             </div>
-        </MobileHeaderLayout>
+        </AppLayout>
     );
 }

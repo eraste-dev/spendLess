@@ -32,7 +32,7 @@ class ExpenseCategoryController extends Controller
             ]);
         }
 
-        return Inertia::render('budget/expense-categories/index', [
+        return Inertia::render('budget/expense/index', [
             'categories' => $categories,
         ]);
     }

@@ -34,8 +34,8 @@ const mainNavItems: NavItem[] = [
         icon: Wallet,
         items: [
             {
-                title: 'Catégories de revenus',
-                href: '/budget/income-categories',
+                title: 'Revenus',
+                href: '/budget/incomes',
                 icon: TrendingUp,
             },
             {

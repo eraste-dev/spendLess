@@ -13,7 +13,7 @@ interface Props {
     incomes: Income[];
     incomeEntries: IncomeEntry[];
     settings: UserSettings;
-    totalIncome: number;
+    total: number;
     currentMonth: number;
     currentYear: number;
     plannedMonths: { year: number; month: number }[];
@@ -23,7 +23,7 @@ export default function Index({
     incomes,
     incomeEntries,
     settings,
-    totalIncome,
+    total,
     currentMonth,
     currentYear,
     plannedMonths,
@@ -71,7 +71,7 @@ export default function Index({
                         </p>
                         <div className="flex items-baseline gap-2">
                             <span className="text-3xl font-bold tracking-tight sm:text-4xl">
-                                {formatCurrency(totalIncome, settings)}
+                                {formatCurrency(total, settings)}
                             </span>
                         </div>
                     </div>

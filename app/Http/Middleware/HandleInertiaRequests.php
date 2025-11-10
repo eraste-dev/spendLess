@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Budget\BudgetCalculatorService;
+use App\Repositories\User\UserSettingRepository;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -38,7 +40,7 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        return [
+        $sharedData = [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
@@ -47,5 +49,16 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+
+        // Add budget summary and user settings for authenticated users
+        if ($request->user()) {
+            $budgetCalculator = app(BudgetCalculatorService::class);
+            $userSettingRepo = app(UserSettingRepository::class);
+
+            $sharedData['budgetSummary'] = $budgetCalculator->getBudgetSummary($request->user()->id);
+            $sharedData['userSettings'] = $userSettingRepo->getOrCreateForUser($request->user()->id);
+        }
+
+        return $sharedData;
     }
 }

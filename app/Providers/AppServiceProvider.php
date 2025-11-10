@@ -8,7 +8,7 @@ use App\Models\Blog\Article;
 use App\Models\Budget\ExpenseCategory;
 use App\Models\Budget\ExpenseSubcategory;
 use App\Models\Budget\Income;
-use App\Models\Budget\IncomeCategory;
+use App\Models\Budget\IncomeEntry;
 use App\Models\User\UserSetting;
 use App\Models\Certificate\ManageCertificate;
 use App\Models\Course\Category;
@@ -20,8 +20,8 @@ use App\Repositories\Assessment\QuizRepository;
 use App\Repositories\Blog\ArticleRepository;
 use App\Repositories\Budget\ExpenseCategoryRepository;
 use App\Repositories\Budget\ExpenseSubcategoryRepository;
-use App\Repositories\Budget\IncomeCategoryRepository;
 use App\Repositories\Budget\IncomeRepository;
+use App\Repositories\Budget\IncomeEntryRepository;
 use App\Repositories\User\UserSettingRepository;
 use App\Repositories\Certificate\CertificateRepository;
 use App\Repositories\Course\CategoryRepository;
@@ -75,12 +75,12 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Budget Module Repositories
-        $this->app->bind(IncomeCategoryRepository::class, function ($app) {
-            return new IncomeCategoryRepository(new IncomeCategory());
-        });
-
         $this->app->bind(IncomeRepository::class, function ($app) {
             return new IncomeRepository(new Income());
+        });
+
+        $this->app->bind(IncomeEntryRepository::class, function ($app) {
+            return new IncomeEntryRepository(new IncomeEntry());
         });
 
         $this->app->bind(ExpenseCategoryRepository::class, function ($app) {

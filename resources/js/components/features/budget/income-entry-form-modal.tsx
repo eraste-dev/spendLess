@@ -1,4 +1,4 @@
-import { Income, IncomeCategory } from '@/types/budget';
+import { IncomeEntry, Income } from '@/types/budget';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -18,54 +18,80 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { useForm, router } from '@inertiajs/react';
+import { FormEventHandler, useEffect } from 'react';
 
-interface IncomeFormModalMobileProps {
+interface IncomeEntryFormModalProps {
     isOpen: boolean;
     onClose: () => void;
-    income: Income | null;
-    categories: IncomeCategory[];
+    incomeEntry: IncomeEntry | null;
+    incomes: Income[];
+    currentYear?: number;
+    currentMonth?: number;
 }
 
-export function IncomeFormModalMobile({
+export function IncomeEntryFormModal({
     isOpen,
     onClose,
-    income,
-    categories,
-}: IncomeFormModalMobileProps) {
-    const isEditing = !!income;
+    incomeEntry,
+    incomes,
+    currentYear,
+    currentMonth,
+}: IncomeEntryFormModalProps) {
+    const isEditing = !!incomeEntry;
+
+    // Generate default date based on current year/month (first day of the month)
+    const getDefaultDate = () => {
+        if (incomeEntry?.income_date) {
+            return incomeEntry.income_date;
+        }
+        if (currentYear && currentMonth) {
+            // Format: YYYY-MM-DD with first day of the month
+            return `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+        }
+        return new Date().toISOString().split('T')[0];
+    };
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
-        income_category_id: income?.income_category_id?.toString() || '',
-        description: income?.description || '',
-        amount: income?.amount?.toString() || '',
-        income_date: income?.income_date || new Date().toISOString().split('T')[0],
-        is_recurring: income?.is_recurring || false,
-        recurrence_day: income?.recurrence_day?.toString() || '',
+        income_id: incomeEntry?.income_id?.toString() || '',
+        description: incomeEntry?.description || '',
+        amount: incomeEntry?.amount?.toString() || '',
+        income_date: getDefaultDate(),
+        is_recurring: incomeEntry?.is_recurring || false,
+        recurrence_day: incomeEntry?.recurrence_day?.toString() || '',
     });
+
+    // Reset form data when incomeEntry or month changes
+    useEffect(() => {
+        if (isOpen) {
+            // Generate date based on context
+            const defaultDate = incomeEntry?.income_date || (currentYear && currentMonth
+                ? `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`
+                : new Date().toISOString().split('T')[0]);
+
+            setData({
+                income_id: incomeEntry?.income_id?.toString() || '',
+                description: incomeEntry?.description || '',
+                amount: incomeEntry?.amount?.toString() || '',
+                income_date: defaultDate,
+                is_recurring: incomeEntry?.is_recurring || false,
+                recurrence_day: incomeEntry?.recurrence_day?.toString() || '',
+            });
+        }
+    }, [incomeEntry, isOpen, currentYear, currentMonth]);
 
     const handleSubmit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        const submitData = {
-            ...data,
-            income_category_id: parseInt(data.income_category_id),
-            amount: parseFloat(data.amount),
-            recurrence_day: data.is_recurring && data.recurrence_day
-                ? parseInt(data.recurrence_day)
-                : null,
-        };
-
         if (isEditing) {
-            put(route('budget.incomes.update', income.id), {
+            put(`/budget/income-entries/${incomeEntry.id}`, {
                 onSuccess: () => {
                     reset();
                     onClose();
                 },
             });
         } else {
-            post(route('budget.incomes.store'), {
+            post('/budget/income-entries', {
                 onSuccess: () => {
                     reset();
                     onClose();
@@ -99,32 +125,32 @@ export function IncomeFormModalMobile({
 
                     {/* Scrollable Content */}
                     <div className="space-y-5 px-4 sm:px-6 py-6">
-                        {/* Category */}
+                        {/* Income */}
                         <div className="space-y-2">
-                            <Label htmlFor="income_category_id">Catégorie *</Label>
+                            <Label htmlFor="income_id">Revenu *</Label>
                             <Select
-                                value={data.income_category_id}
+                                value={data.income_id}
                                 onValueChange={(value) =>
-                                    setData('income_category_id', value)
+                                    setData('income_id', value)
                                 }
                             >
                                 <SelectTrigger className="h-12 text-base">
-                                    <SelectValue placeholder="Sélectionner une catégorie" />
+                                    <SelectValue placeholder="Sélectionner un revenu" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {categories.map((category) => (
+                                    {incomes.map((income) => (
                                         <SelectItem
-                                            key={category.id}
-                                            value={category.id.toString()}
+                                            key={income.id}
+                                            value={income.id.toString()}
                                         >
-                                            {category.name}
+                                            {income.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.income_category_id && (
+                            {errors.income_id && (
                                 <p className="text-sm text-destructive">
-                                    {errors.income_category_id}
+                                    {errors.income_id}
                                 </p>
                             )}
                         </div>

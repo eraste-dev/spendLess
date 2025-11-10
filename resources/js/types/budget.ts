@@ -1,6 +1,6 @@
 // Types partagés pour le module Budget
 
-export interface IncomeCategory {
+export interface Income {
     id: number;
     name: string;
     description: string | null;
@@ -42,11 +42,11 @@ export interface ExpenseCategory {
     updated_at: string;
 }
 
-export interface Income {
+export interface IncomeEntry {
     id: number;
     user_id: number;
-    income_category_id: number;
-    category?: IncomeCategory;
+    income_id: number;
+    income?: Income;
     description: string | null;
     amount: number;
     income_date: string;
@@ -72,4 +72,10 @@ export interface UserSettings {
 export interface Currency {
     symbol: string;
     name: string;
+}
+
+export interface BudgetSummary {
+    today_budget: number;
+    remaining_this_month: number;
+    days_remaining: number;
 }
